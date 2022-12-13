@@ -8,12 +8,9 @@ public class TestDetails {
     protected int choice;
     protected int switch_status;
 
+    protected int flag;
     public String returnMessage;
-
-    enum Components{
-        test_motor,
-        test_fs
-    }
+    protected String schoice;
 
     public void setPublishTopic(String publishTopic) {
         this.publishTopic = publishTopic;
@@ -35,5 +32,13 @@ public class TestDetails {
     }
     public String getReturnMessage(){
         return returnMessage;
+    }
+
+    public void setsChoice(String schoice){
+        this.schoice = schoice;
+    }
+
+    public void setFlag(int flag) {
+        this.flag = flag;
     }
 }

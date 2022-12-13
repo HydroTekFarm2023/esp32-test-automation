@@ -10,7 +10,7 @@ import java.util.concurrent.CountDownLatch;
 
 import java.lang.Thread.*;
 import java.util.UUID;
-
+import java.util.concurrent.TimeUnit;
 
 
 public class TestFunction extends TestDetails
@@ -18,7 +18,14 @@ public class TestFunction extends TestDetails
     public String test(final TestDetails testDetails) throws InterruptedException, IOException {
 
         JSONObject obj = new JSONObject();
-        obj.put("choice", testDetails.choice);
+        if(testDetails.flag==1)
+        {
+            obj.put("choice",testDetails.schoice);
+        }
+        else{
+            obj.put("choice", testDetails.choice);
+        }
+
         obj.put("switch_status", testDetails.switch_status);
 
         String topic = testDetails.publishTopic;
@@ -112,12 +119,61 @@ public class TestFunction extends TestDetails
         } catch (InterruptedException e) {
             System.out.println("I was awoken while waiting");
         }
+        TimeUnit.SECONDS.sleep(3);
         FileReader reader = new FileReader("C:\\hydrotek\\work\\gitsrc\\ESP32_Automation_Testing\\src\\main\\java\\org\\example\\Result.txt");
         BufferedReader bufferedReader = new BufferedReader(reader);
         String msg = bufferedReader.readLine();
         reader.close();
         System.out.println("subscribed message: "+msg);
         return msg;
+    }
+
+    public String endTest(final TestDetails endDetails) throws InterruptedException,IOException{
+        JSONObject obj = new JSONObject();
+        if (endDetails.flag == 1) {
+            obj.put("choice", endDetails.schoice);
+        } else {
+            obj.put("choice", endDetails.choice);
+        }
+
+        obj.put("switch_status", endDetails.switch_status);
+
+        String topic = endDetails.publishTopic;
+        String content = JSONValue.toJSONString(obj);
+        int qos = 0;
+        String broker = "ws://35.202.108.111:8000";
+        String clientId = UUID.randomUUID().toString();
+        MemoryPersistence persistence = new MemoryPersistence();
+
+        IMqttClient sampleClient = null;
+        final CountDownLatch latch = new CountDownLatch(1);
+        try {
+            sampleClient = new MqttClient(broker, clientId, persistence);
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(true);
+            connOpts.setAutomaticReconnect(true);
+            connOpts.setKeepAliveInterval(180);
+            connOpts.setConnectionTimeout(10);
+
+
+            System.out.println("Connecting to broker: " + broker);
+            sampleClient.connect(connOpts);
+            System.out.println("Connected");
+
+
+            System.out.println("Publishing message: " + content);
+
+            MqttMessage message = new MqttMessage(content.getBytes());
+
+            message.setQos(qos);
+            message.setRetained(true);
+            sampleClient.publish(topic, message);
+        }
+        catch (MqttException e) {
+            throw new RuntimeException(e);
+        }
+        String end = "TEST_ENDED";
+        return end;
     }
 
 }

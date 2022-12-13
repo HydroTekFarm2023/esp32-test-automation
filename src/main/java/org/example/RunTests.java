@@ -15,3 +15,4 @@ public class RunTests extends TestMain {
         System.out.println(result.wasSuccessful());
     }
 }
+
